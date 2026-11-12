@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "test",
-    "slug": "test",
+    "name": "pam",
+    "slug": "pam",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "test",
+    "scheme": "pam",
     "platforms": [
       "ios",
       "android"
@@ -28,7 +28,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.thinhtran_28.test"
+      "package": "com.thinhtran_28.pam"
     },
     "plugins": [
       "expo-router",
