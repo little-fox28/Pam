@@ -1,16 +1,20 @@
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
+import { type ComponentRef, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   useWindowDimensions,
   View,
 } from 'react-native';
+import Animated, {
+  KeyboardState,
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnimatedCircularProgress } from '@/components/AnimatedCircularProgress';
@@ -69,15 +73,15 @@ export default function TimerScreen() {
     reps: String(INITIAL_VALUES.reps),
   });
   const [focusedField, setFocusedField] = useState<Field | null>(null);
-  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
 
-  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
-  const isKeyboardOpenRef = useRef<boolean>(false);
   const inputRefs = useRef<Record<Field, ComponentRef<typeof TextInput> | null>>({
     time: null,
     rest: null,
     reps: null,
   });
+
+  // Reanimated 60fps native keyboard tracker (zero JS-thread lag).
+  const keyboard = useAnimatedKeyboard();
 
   // Responsive larger circle size (~280-300dp on standard phones).
   const ringSize = Math.min(Math.round(windowWidth - spacing.lg * 2.5), 296);
@@ -98,43 +102,41 @@ export default function TimerScreen() {
 
   const isRunningOrPaused = currentState === 'working' || currentState === 'resting';
 
-  const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    });
-  }, []);
+  const restingBottomPadding = insets.bottom + TAB_BAR_SPACE;
 
-  // Listen to native OS keyboard events on both iOS and Android.
-  useEffect(() => {
-    const onShow = (height: number) => {
-      isKeyboardOpenRef.current = true;
-      setKeyboardHeight(height);
-      scrollToBottom();
-    };
-
-    const onHide = () => {
-      isKeyboardOpenRef.current = false;
-      setKeyboardHeight(0);
-    };
-
-    const willShowSub =
-      Platform.OS === 'ios'
-        ? Keyboard.addListener('keyboardWillShow', (e) => onShow(e.endCoordinates.height))
-        : null;
-    const didShowSub = Keyboard.addListener('keyboardDidShow', (e) =>
-      onShow(e.endCoordinates.height)
+  // FR3: 60fps Smooth bottom container translation locked to native keyboard animation.
+  const bottomAnimatedStyle = useAnimatedStyle(() => {
+    const targetShift = Math.max(
+      0,
+      keyboard.height.value - restingBottomPadding + spacing.md
     );
-    const willHideSub =
-      Platform.OS === 'ios' ? Keyboard.addListener('keyboardWillHide', onHide) : null;
-    const didHideSub = Keyboard.addListener('keyboardDidHide', onHide);
-
-    return () => {
-      willShowSub?.remove();
-      didShowSub.remove();
-      willHideSub?.remove();
-      didHideSub.remove();
+    return {
+      transform: [{ translateY: -targetShift }],
     };
-  }, [scrollToBottom]);
+  });
+
+  // Smooth separation of background header (opacity down to 0.25) when keyboard opens.
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const progress = Math.min(1, Math.max(0, keyboard.height.value / 300));
+    const opacity = 1 - progress * 0.75;
+    return {
+      opacity,
+    };
+  });
+
+  // FR4: Proportional scale, vertical adjustment & background separation (opacity down to 0.20) during keyboard open.
+  const timerAnimatedStyle = useAnimatedStyle(() => {
+    const progress = Math.min(1, Math.max(0, keyboard.height.value / 300));
+    const isFullyOpen = keyboard.state.value === KeyboardState.OPEN;
+    const scale = isFullyOpen ? 0.88 : 1 - progress * 0.12;
+    const translateY = -progress * 22;
+    const opacity = 1 - progress * 0.8;
+
+    return {
+      transform: [{ scale }, { translateY }],
+      opacity,
+    };
+  });
 
   // 1. Preload audio cues on mount and release on unmount.
   useEffect(() => {
@@ -257,44 +259,22 @@ export default function TimerScreen() {
   const primaryButtonColor =
     isRunningOrPaused && !isPaused ? colors.warning : colors.success;
 
-  const isKeyboardOpen = keyboardHeight > 0;
-
   return (
-    <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: colors.background }]}>
-      <ScrollView
-        ref={scrollRef}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        onContentSizeChange={() => {
-          if (isKeyboardOpenRef.current || focusedField !== null) {
-            scrollToBottom();
-          }
-        }}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingHorizontal: spacing.lg,
-            paddingTop: spacing.sm,
-            paddingBottom: isKeyboardOpen
-              ? keyboardHeight + spacing.lg
-              : insets.bottom + TAB_BAR_SPACE,
-            gap: spacing.md,
-          },
-        ]}>
-        <Pressable onPress={Keyboard.dismiss} style={[styles.viewport, { gap: spacing.md }]}>
-          {/* Header */}
-          <View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: colors.background }]}>
+        <View style={[styles.viewport, { paddingHorizontal: spacing.lg, paddingTop: spacing.sm }]}>
+          {/* Header with animated background separation */}
+          <Animated.View style={[styles.header, headerAnimatedStyle]}>
             <Text style={[typography.largeTitle, { color: colors.textPrimary }]}>
               {t('timer.setup.title')}
             </Text>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
               {t('timer.setup.subtitle')}
             </Text>
-          </View>
+          </Animated.View>
 
-          {/* Larger Center 60fps UI-Thread Circular Progress Ring */}
-          <View style={styles.ringSection}>
+          {/* FR4: Center 60fps UI-Thread Circular Progress Ring with Proportional Scaling */}
+          <Animated.View style={[styles.ringSection, timerAnimatedStyle]}>
             <AnimatedCircularProgress
               state={currentState}
               remainingTime={remainingTime}
@@ -323,134 +303,140 @@ export default function TimerScreen() {
                 {t('timer.phase.rep', { current: currentRep, total: values.reps })}
               </Text>
             </AnimatedCircularProgress>
-          </View>
+          </Animated.View>
 
-          {/* FR1: Inline Setup Controls (Green & Orange Accents) */}
-          <View
+          {/* FR3: Smooth 60fps Sliding Bottom Container (Inputs + Action Buttons) */}
+          <Animated.View
             style={[
-              styles.setupRow,
+              styles.bottomContainer,
               {
-                gap: spacing.sm,
-                opacity: isRunningOrPaused ? 0.55 : 1,
+                paddingBottom: restingBottomPadding,
+                gap: spacing.md,
               },
+              bottomAnimatedStyle,
             ]}>
-            {(Object.keys(FIELDS) as Field[]).map((field) => {
-              const isFocused = focusedField === field;
-              const activeColor = fieldColor[field];
+            {/* Setup Controls (Green Active Outline on Focus) */}
+            <View
+              style={[
+                styles.setupRow,
+                {
+                  gap: spacing.sm,
+                  opacity: isRunningOrPaused ? 0.55 : 1,
+                },
+              ]}>
+              {(Object.keys(FIELDS) as Field[]).map((field) => {
+                const isFocused = focusedField === field;
+                const activeColor = fieldColor[field];
 
-              return (
-                <Pressable
-                  key={field}
-                  accessibilityRole="button"
-                  disabled={isRunningOrPaused}
-                  onPress={() => {
-                    haptic.light();
-                    inputRefs.current[field]?.focus();
-                  }}
-                  style={[
-                    styles.setupCard,
-                    {
-                      backgroundColor: colors.surface,
-                      borderRadius: radius.lg,
-                      paddingVertical: spacing.sm,
-                      paddingHorizontal: spacing.sm,
-                      borderColor: isFocused ? activeColor : colors.border,
-                      borderWidth: isFocused ? 2 : StyleSheet.hairlineWidth,
-                    },
-                  ]}>
-                  <Text
-                    numberOfLines={1}
+                return (
+                  <Pressable
+                    key={field}
+                    accessibilityRole="button"
+                    disabled={isRunningOrPaused}
+                    onPress={() => {
+                      haptic.light();
+                      inputRefs.current[field]?.focus();
+                    }}
                     style={[
-                      typography.caption,
-                      styles.cardLabel,
-                      { color: activeColor },
+                      styles.setupCard,
+                      {
+                        backgroundColor: colors.surface,
+                        borderRadius: radius.lg,
+                        paddingVertical: spacing.sm,
+                        paddingHorizontal: spacing.sm,
+                        borderColor: isFocused ? colors.success : colors.border,
+                        borderWidth: isFocused ? 2 : StyleSheet.hairlineWidth,
+                      },
                     ]}>
-                    {t(`timer.setup.${field}`).toUpperCase()}
-                  </Text>
-
-                  <View style={styles.cardValueWrapper}>
-                    <TextInput
-                      ref={(el) => {
-                        inputRefs.current[field] = el;
-                      }}
-                      editable={!isRunningOrPaused}
-                      value={drafts[field]}
-                      onChangeText={(text) => handleChangeText(field, text)}
-                      onFocus={() => {
-                        setFocusedField(field);
-                        scrollToBottom();
-                      }}
-                      onBlur={() => handleBlur(field)}
-                      keyboardType="number-pad"
-                      keyboardAppearance={scheme}
-                      returnKeyType="done"
-                      maxLength={4}
-                      selectTextOnFocus
-                      onSubmitEditing={Keyboard.dismiss}
+                    <Text
+                      numberOfLines={1}
                       style={[
-                        typography.title,
-                        styles.cardInput,
-                        { color: isFocused ? activeColor : colors.textPrimary },
-                      ]}
-                    />
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
+                        typography.caption,
+                        styles.cardLabel,
+                        { color: activeColor },
+                      ]}>
+                      {t(`timer.setup.${field}`).toUpperCase()}
+                    </Text>
 
-          {/* FR3: Bottom Action Bar (Green START / Orange PAUSE & Orange-Accented RESET) */}
-          <View style={[styles.bottomBar, { gap: spacing.md }]}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={handlePrimaryAction}
-              style={({ pressed }) => [
-                styles.actionButton,
-                styles.startButton,
-                {
-                  backgroundColor: primaryButtonColor,
-                  borderRadius: radius.pill,
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}>
-              <Text style={[typography.headline, { color: colors.onAccent }]}>
-                {primaryLabel}
-              </Text>
-            </Pressable>
+                    <View style={styles.cardValueWrapper}>
+                      <TextInput
+                        ref={(el) => {
+                          inputRefs.current[field] = el;
+                        }}
+                        editable={!isRunningOrPaused}
+                        value={drafts[field]}
+                        onChangeText={(text) => handleChangeText(field, text)}
+                        onFocus={() => setFocusedField(field)}
+                        onBlur={() => handleBlur(field)}
+                        keyboardType="number-pad"
+                        keyboardAppearance={scheme}
+                        returnKeyType="done"
+                        maxLength={4}
+                        selectTextOnFocus
+                        onSubmitEditing={Keyboard.dismiss}
+                        style={[
+                          typography.title,
+                          styles.cardInput,
+                          { color: isFocused ? activeColor : colors.textPrimary },
+                        ]}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-            <Pressable
-              accessibilityRole="button"
-              onPress={handleReset}
-              style={({ pressed }) => [
-                styles.actionButton,
-                styles.resetButton,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.warning,
-                  borderRadius: radius.pill,
-                  opacity: pressed ? 0.75 : 1,
-                },
-              ]}>
-              <Text style={[typography.headline, { color: colors.warning }]}>
-                {t('timer.action.stop')}
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+            {/* Bottom Action Bar (START / PAUSE / RESET) */}
+            <View style={[styles.bottomBar, { gap: spacing.md }]}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={handlePrimaryAction}
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  styles.startButton,
+                  {
+                    backgroundColor: primaryButtonColor,
+                    borderRadius: radius.pill,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}>
+                <Text style={[typography.headline, { color: colors.onAccent }]}>
+                  {primaryLabel}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleReset}
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  styles.resetButton,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.warning,
+                    borderRadius: radius.pill,
+                    opacity: pressed ? 0.75 : 1,
+                  },
+                ]}>
+                <Text style={[typography.headline, { color: colors.warning }]}>
+                  {t('timer.action.stop')}
+                </Text>
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-  },
   viewport: {
     flex: 1,
     justifyContent: 'space-between',
   },
+  header: {},
   ringSection: {
     flex: 1,
     alignItems: 'center',
@@ -466,6 +452,7 @@ const styles = StyleSheet.create({
     lineHeight: 68,
     marginVertical: 2,
   },
+  bottomContainer: {},
   setupRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
