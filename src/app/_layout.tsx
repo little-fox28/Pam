@@ -9,7 +9,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '@/config/env';
 import '@/theme/mode-store';
 
-import migrations from '../../drizzle/migrations';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { FloatingTabBar } from '@/components/FloatingTabBar';
 import { db } from '@/db/client';
@@ -17,6 +16,7 @@ import { i18n } from '@/i18n'; // also runs the synchronous locale read
 import { setupNotifications } from '@/services/notifications';
 import { startNetworkMonitor } from '@/stores/network';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
+import migrations from '../../drizzle/migrations';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,7 +39,7 @@ function Boot() {
 
   useEffect(() => {
     startNetworkMonitor();
-    setupNotifications().catch(() => {});
+    setupNotifications().catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -70,6 +70,7 @@ function Boot() {
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{ headerShown: false }}>
+      <Tabs.Screen name="timer" />
       <Tabs.Screen name="index" />
       <Tabs.Screen name="settings" />
     </Tabs>

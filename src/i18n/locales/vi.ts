@@ -2,6 +2,7 @@ import type { Translations } from './en';
 
 export const vi: Translations = {
   tabs: {
+    timer: 'Đồng hồ',
     home: 'Trang chủ',
     settings: 'Cài đặt',
   },

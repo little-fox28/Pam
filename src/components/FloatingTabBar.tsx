@@ -11,11 +11,19 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>
 
 type TabMeta = {
   labelKey: string;
-  iosIcon: { active: 'house.fill' | 'gearshape.fill'; inactive: 'house' | 'gearshape' };
-  androidIcon: 'home' | 'settings';
+  iosIcon: {
+    active: 'clock.fill' | 'house.fill' | 'gearshape.fill';
+    inactive: 'clock' | 'house' | 'gearshape'
+  };
+  androidIcon: 'timer' | 'home' | 'settings';
 };
 
 const TAB_META: Record<string, TabMeta> = {
+  timer: {
+    labelKey: 'tabs.timer',
+    iosIcon: { active: 'clock.fill', inactive: 'clock' },
+    androidIcon: 'timer',
+  },
   index: {
     labelKey: 'tabs.home',
     iosIcon: { active: 'house.fill', inactive: 'house' },

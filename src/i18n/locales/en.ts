@@ -1,5 +1,6 @@
 export const en = {
   tabs: {
+    timer: 'Timer',
     home: 'Home',
     settings: 'Settings',
   },
