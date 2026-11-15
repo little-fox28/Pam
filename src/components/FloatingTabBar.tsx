@@ -1,7 +1,7 @@
 import type { Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import type { ComponentProps } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { useTranslation } from '@/i18n';
 import { haptic } from '@/services/haptics';
@@ -99,10 +99,10 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
                   ios: isFocused ? meta.iosIcon.active : meta.iosIcon.inactive,
                   android: meta.androidIcon,
                 }}
-                size={30}
+                size={35}
                 tintColor={tintColor}
               />
-              <Text
+              {/* <Text
                 numberOfLines={1}
                 style={[
                   styles.label,
@@ -112,7 +112,7 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
                   },
                 ]}>
                 {label}
-              </Text>
+              </Text> */}
             </Pressable>
           );
         })}
@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 5,
   },
-  label: {
-    fontSize: 11,
-    lineHeight: 14,
-  },
+  // label: {
+  //   fontSize: 11,
+  //   lineHeight: 14,
+  // },
 });

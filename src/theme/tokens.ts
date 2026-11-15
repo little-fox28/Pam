@@ -10,12 +10,14 @@ export type ThemeColors = {
   textSecondary: string;
   border: string;
   accent: string;
+  onAccent: string;
+  warning: string;
   destructive: string;
   success: string;
 };
 
-// Values follow iOS system colors (grouped background / secondary label / etc.).
-export const colors: Record<ColorSchemeName, ThemeColors> = {
+/** Apple Human Interface Guidelines (iOS System Colors). */
+const iosColors: Record<ColorSchemeName, ThemeColors> = {
   light: {
     background: '#F2F2F7',
     surface: '#FFFFFF',
@@ -24,6 +26,8 @@ export const colors: Record<ColorSchemeName, ThemeColors> = {
     textSecondary: '#6C6C70',
     border: '#C6C6C8',
     accent: '#007AFF',
+    onAccent: '#FFFFFF',
+    warning: '#FF9500',
     destructive: '#FF3B30',
     success: '#34C759',
   },
@@ -35,10 +39,47 @@ export const colors: Record<ColorSchemeName, ThemeColors> = {
     textSecondary: '#8E8E93',
     border: '#38383A',
     accent: '#0A84FF',
+    onAccent: '#FFFFFF',
+    warning: '#FF9F0A',
     destructive: '#FF453A',
     success: '#30D158',
   },
 };
+
+/** Google Material Design 3 (Material You) tonal surfaces & semantic colors. */
+const androidColors: Record<ColorSchemeName, ThemeColors> = {
+  light: {
+    background: '#F8FAF9',
+    surface: '#FFFFFF',
+    surfaceElevated: '#F0F4F2',
+    textPrimary: '#191C1B',
+    textSecondary: '#444746',
+    border: '#C4C7C5',
+    accent: '#1A73E8',
+    onAccent: '#FFFFFF',
+    warning: '#E37400',
+    destructive: '#D93025',
+    success: '#1E8E3E',
+  },
+  dark: {
+    background: '#131314',
+    surface: '#1E1F20',
+    surfaceElevated: '#282A2C',
+    textPrimary: '#E3E3E3',
+    textSecondary: '#C4C7C5',
+    border: '#444746',
+    accent: '#4C8DF6',
+    onAccent: '#FFFFFF',
+    warning: '#F29900',
+    destructive: '#E46962',
+    success: '#34A853',
+  },
+};
+
+export const colors: Record<ColorSchemeName, ThemeColors> = Platform.select({
+  android: androidColors,
+  default: iosColors,
+});
 
 /** 4pt grid. */
 export const spacing = {
@@ -93,4 +134,3 @@ export type Theme = {
 export function createTheme(scheme: ColorSchemeName): Theme {
   return { scheme, colors: colors[scheme], spacing, radius, typography };
 }
-

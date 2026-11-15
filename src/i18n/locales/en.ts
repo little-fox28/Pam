@@ -21,6 +21,29 @@ export const en = {
     reset: 'Reset app settings',
   },
   boot: { dbError: 'Database migration failed' },
+  timer: {
+    setup: {
+      title: 'Interval Timer',
+      subtitle: 'Set your work, rest and rounds.',
+      time: 'Time (s)',
+      rest: 'Rest (s)',
+      reps: 'Reps',
+    },
+    action: {
+      start: 'START',
+      pause: 'PAUSE',
+      resume: 'RESUME',
+      stop: 'RESET',
+      complete: 'COMPLETE',
+    },
+    phase: {
+      idle: 'READY',
+      working: 'WORK',
+      resting: 'REST',
+      completed: 'COMPLETED',
+      rep: 'Rep %{current} of %{total}',
+    },
+  },
 };
 
 export type Translations = typeof en;

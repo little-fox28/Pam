@@ -23,4 +23,27 @@ export const vi: Translations = {
     reset: 'Đặt lại cài đặt ứng dụng',
   },
   boot: { dbError: 'Di chuyển cơ sở dữ liệu thất bại' },
+  timer: {
+    setup: {
+      title: 'Hẹn giờ ngắt quãng',
+      subtitle: 'Thiết lập thời gian tập, nghỉ và số hiệp.',
+      time: 'Thời gian (s)',
+      rest: 'Nghỉ (s)',
+      reps: 'Số hiệp',
+    },
+    action: {
+      start: 'BẮT ĐẦU',
+      pause: 'TẠM DỪNG',
+      resume: 'TIẾP TỤC',
+      stop: 'ĐẶT LẠI',
+      complete: 'HOÀN THÀNH',
+    },
+    phase: {
+      idle: 'SẴN SÀNG',
+      working: 'TẬP',
+      resting: 'NGHỈ',
+      completed: 'HOÀN TẤT',
+      rep: 'Hiệp %{current} / %{total}',
+    },
+  },
 };
