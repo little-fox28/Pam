@@ -1,13 +1,11 @@
 import type { Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { type ComponentProps, useCallback, useEffect, useMemo, useRef } from 'react';
-import { PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { type ComponentProps, useEffect, useMemo, useState } from 'react';
+import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 
 import { useTranslation } from '@/i18n';
@@ -49,176 +47,81 @@ const TAB_GAP = 4;
 const PILL_PADDING = 4;
 const STEP = TAB_WIDTH + TAB_GAP;
 
+// Tuned spring for instant, lightweight 60fps UI-thread transition
 const SPRING_CONFIG = {
-  damping: 18,
-  stiffness: 200,
-  mass: 0.65,
+  damping: 22,
+  stiffness: 260,
+  mass: 0.5,
 };
 
 /**
- * Native-proportioned floating pill bottom navigation bar.
- * Features a fluid sliding background capsule (`Animated.View`) that glides
- * between tabs both when tapping and when dragging/scrubbing horizontally.
+ * High-performance, lightweight floating pill bottom navigation bar.
+ *
+ * Performance Optimizations:
+ * - 100% UI-thread animation: uses a single `indicatorX` shared value driven directly by `state.index`.
+ * - Zero JS-thread per-frame math: eliminates PanResponder, touch coordinate calculations, scale sequencing, and redundant refs.
+ * - Minimal re-renders: pure layout-driven geometry.
  */
 export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBarProps) {
   'use no memo';
   const { scheme, colors, radius } = useTheme();
   const { t } = useTranslation();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const visibleRoutes = useMemo(
     () => state.routes.filter((r) => Boolean(TAB_META[r.name])),
     [state.routes]
   );
 
-  const tabCount = visibleRoutes.length;
-  const maxOffset = Math.max(0, (tabCount - 1) * STEP);
-
+  // Single shared value for the indicator's X offset
   const indicatorX = useSharedValue(state.index * STEP);
-  const indicatorScaleX = useSharedValue(1);
-  const indicatorScaleY = useSharedValue(1);
 
-  const isDraggingRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const lastHoveredIndexRef = useRef(state.index);
-
-  // Keep latest values in refs for PanResponder callbacks.
-  const stateRef = useRef(state);
-  stateRef.current = state;
-  const visibleRoutesRef = useRef(visibleRoutes);
-  visibleRoutesRef.current = visibleRoutes;
-
-  const animateToIndex = useCallback(
-    (targetIndex: number) => {
-      indicatorX.value = withSpring(targetIndex * STEP, SPRING_CONFIG);
-      // Subtle liquid stretch as the background pill slides between tabs.
-      indicatorScaleX.value = withSequence(
-        withTiming(1.08, { duration: 110 }),
-        withSpring(1, SPRING_CONFIG)
-      );
-      indicatorScaleY.value = withSequence(
-        withTiming(0.94, { duration: 110 }),
-        withSpring(1, SPRING_CONFIG)
-      );
-    },
-    [indicatorScaleX, indicatorScaleY, indicatorX]
-  );
-
-  const selectTabByIndex = useCallback(
-    (targetIndex: number, shouldSpring = true) => {
-      const routes = visibleRoutesRef.current;
-      const route = routes[targetIndex];
-      if (!route) return;
-
-      if (shouldSpring) {
-        animateToIndex(targetIndex);
-      }
-
-      const isCurrentlyFocused = stateRef.current.index === targetIndex;
-      const event = emitter.emit({
-        type: 'tabPress',
-        target: route.key,
-        canPreventDefault: true,
-      });
-
-      if (!isCurrentlyFocused && !event.defaultPrevented) {
-        haptic.light();
-        navigateToTab(route.key);
-      }
-    },
-    [animateToIndex, emitter, navigateToTab]
-  );
-
-  // Sync sliding indicator when active tab changes outside of a drag gesture.
+  // Directly spring to target tab on the UI thread when state.index changes
   useEffect(() => {
-    lastHoveredIndexRef.current = state.index;
-    if (!isDraggingRef.current) {
-      animateToIndex(state.index);
-    }
-  }, [state.index, animateToIndex]);
+    indicatorX.value = withSpring(state.index * STEP, SPRING_CONFIG);
+  }, [state.index, indicatorX]);
 
-  // Capture horizontal slide gestures even when the touch starts on a child <Pressable>.
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, g) =>
-          Math.abs(g.dx) > 4 && Math.abs(g.dx) > Math.abs(g.dy),
-        onMoveShouldSetPanResponderCapture: (_, g) =>
-          Math.abs(g.dx) > 4 && Math.abs(g.dx) > Math.abs(g.dy),
-        onPanResponderGrant: () => {
-          isDraggingRef.current = true;
-          dragStartXRef.current = stateRef.current.index * STEP;
-          lastHoveredIndexRef.current = stateRef.current.index;
-          indicatorScaleX.value = withTiming(1.05, { duration: 100 });
-          indicatorScaleY.value = withTiming(0.95, { duration: 100 });
-        },
-        onPanResponderMove: (_, gestureState) => {
-          const clampedX = Math.max(
-            0,
-            Math.min(maxOffset, dragStartXRef.current + gestureState.dx)
-          );
-          indicatorX.value = clampedX;
+  // Hide floating navbar while the software keyboard is open
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
-          const hoveredIndex = Math.max(
-            0,
-            Math.min(
-              visibleRoutesRef.current.length - 1,
-              Math.round(clampedX / STEP)
-            )
-          );
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
 
-          if (hoveredIndex !== lastHoveredIndexRef.current) {
-            lastHoveredIndexRef.current = hoveredIndex;
-            selectTabByIndex(hoveredIndex, false);
-          }
-        },
-        onPanResponderRelease: () => {
-          isDraggingRef.current = false;
-          const targetIndex = lastHoveredIndexRef.current;
-          indicatorX.value = withSpring(targetIndex * STEP, SPRING_CONFIG);
-          indicatorScaleX.value = withSpring(1, SPRING_CONFIG);
-          indicatorScaleY.value = withSpring(1, SPRING_CONFIG);
-        },
-        onPanResponderTerminate: () => {
-          isDraggingRef.current = false;
-          const targetIndex = lastHoveredIndexRef.current;
-          indicatorX.value = withSpring(targetIndex * STEP, SPRING_CONFIG);
-          indicatorScaleX.value = withSpring(1, SPRING_CONFIG);
-          indicatorScaleY.value = withSpring(1, SPRING_CONFIG);
-        },
-      }),
-    [indicatorScaleX, indicatorScaleY, indicatorX, maxOffset, selectTabByIndex]
-  );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const animatedIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: indicatorX.value },
-      { scaleX: indicatorScaleX.value },
-      { scaleY: indicatorScaleY.value },
-    ],
+    transform: [{ translateX: indicatorX.value }],
   }));
 
   const bottomOffset = Platform.select({
-    ios: insets.bottom > 0 ? insets.bottom - 4 : 16,
-    default: Math.max(insets.bottom + 8, 16),
+    ios: insets.bottom > 0 ? Math.max(insets.bottom - 14, 14) : 10,
+    android: insets.bottom > 0 ? insets.bottom + 4 : 12,
+    default: Math.max(insets.bottom, 12),
   });
 
   const activeBg =
     scheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
 
+  if (keyboardVisible) return null;
+
   return (
     <View pointerEvents="box-none" style={[styles.wrapper, { bottom: bottomOffset }]}>
       <View
-        {...panResponder.panHandlers}
         style={[
           styles.pill,
           {
             backgroundColor: colors.surfaceElevated,
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: scheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : colors.border,
             borderRadius: radius.pill,
           },
         ]}>
-        {/* Sliding active background capsule */}
+        {/* Sliding active background capsule (pure GPU/UI thread) */}
         <Animated.View
           pointerEvents="none"
           style={[
@@ -239,13 +142,26 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
           const tintColor = isFocused ? colors.accent : colors.textSecondary;
           const label = t(meta.labelKey);
 
+          const handlePress = () => {
+            const event = emitter.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              haptic.light();
+              navigateToTab(route.key);
+            }
+          };
+
           return (
             <Pressable
               key={route.key}
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={label}
-              onPress={() => selectTabByIndex(index, true)}
+              onPress={handlePress}
               style={({ pressed }) => [
                 styles.tab,
                 {
@@ -258,21 +174,10 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
                   ios: isFocused ? meta.iosIcon.active : meta.iosIcon.inactive,
                   android: meta.androidIcon,
                 }}
-                size={30}
+                size={28}
                 weight={isFocused ? 'semibold' : 'regular'}
                 tintColor={tintColor}
               />
-              {/* <Text
-                numberOfLines={1}
-                style={[
-                  styles.label,
-                  {
-                    color: tintColor,
-                    fontWeight: isFocused ? '600' : '500',
-                  },
-                ]}>
-                {label}
-              </Text> */}
             </Pressable>
           );
         })}
@@ -294,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: PILL_PADDING,
     gap: TAB_GAP,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -324,9 +229,4 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     gap: 2,
   },
-  // label: {
-  //   fontSize: 10.5,
-  //   lineHeight: 13,
-  //   letterSpacing: 0.1,
-  // },
 });
