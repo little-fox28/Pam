@@ -174,7 +174,7 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
                   ios: isFocused ? meta.iosIcon.active : meta.iosIcon.inactive,
                   android: meta.androidIcon,
                 }}
-                size={28}
+                size={32}
                 weight={isFocused ? 'semibold' : 'regular'}
                 tintColor={tintColor}
               />
