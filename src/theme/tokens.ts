@@ -14,6 +14,14 @@ export type ThemeColors = {
   warning: string;
   destructive: string;
   success: string;
+  workoutPull: string;
+  workoutPullSoft: string;
+  workoutPush: string;
+  workoutPushSoft: string;
+  workoutLegs: string;
+  workoutLegsSoft: string;
+  workoutCardio: string;
+  workoutCardioSoft: string;
 };
 
 /** Apple Human Interface Guidelines (iOS System Colors). */
@@ -30,6 +38,14 @@ const iosColors: Record<ColorSchemeName, ThemeColors> = {
     warning: '#FF9500',
     destructive: '#FF3B30',
     success: '#34C759',
+    workoutPull: '#007AFF',
+    workoutPullSoft: 'rgba(0, 122, 255, 0.12)',
+    workoutPush: '#34C759',
+    workoutPushSoft: 'rgba(52, 199, 89, 0.12)',
+    workoutLegs: '#5856D6',
+    workoutLegsSoft: 'rgba(88, 86, 214, 0.12)',
+    workoutCardio: '#FF9500',
+    workoutCardioSoft: 'rgba(255, 149, 0, 0.14)',
   },
   dark: {
     background: '#000000',
@@ -43,6 +59,14 @@ const iosColors: Record<ColorSchemeName, ThemeColors> = {
     warning: '#FF9F0A',
     destructive: '#FF453A',
     success: '#30D158',
+    workoutPull: '#0A84FF',
+    workoutPullSoft: 'rgba(10, 132, 255, 0.18)',
+    workoutPush: '#30D158',
+    workoutPushSoft: 'rgba(48, 209, 88, 0.18)',
+    workoutLegs: '#5E5CE6',
+    workoutLegsSoft: 'rgba(94, 92, 230, 0.18)',
+    workoutCardio: '#FF9F0A',
+    workoutCardioSoft: 'rgba(255, 159, 10, 0.18)',
   },
 };
 
@@ -60,6 +84,14 @@ const androidColors: Record<ColorSchemeName, ThemeColors> = {
     warning: '#E37400',
     destructive: '#D93025',
     success: '#1E8E3E',
+    workoutPull: '#1A73E8',
+    workoutPullSoft: 'rgba(26, 115, 232, 0.12)',
+    workoutPush: '#1E8E3E',
+    workoutPushSoft: 'rgba(30, 142, 62, 0.12)',
+    workoutLegs: '#6750A4',
+    workoutLegsSoft: 'rgba(103, 80, 164, 0.12)',
+    workoutCardio: '#E37400',
+    workoutCardioSoft: 'rgba(227, 116, 0, 0.14)',
   },
   dark: {
     background: '#131314',
@@ -73,6 +105,14 @@ const androidColors: Record<ColorSchemeName, ThemeColors> = {
     warning: '#F29900',
     destructive: '#E46962',
     success: '#34A853',
+    workoutPull: '#4C8DF6',
+    workoutPullSoft: 'rgba(76, 141, 246, 0.18)',
+    workoutPush: '#34A853',
+    workoutPushSoft: 'rgba(52, 168, 83, 0.18)',
+    workoutLegs: '#9A82DB',
+    workoutLegsSoft: 'rgba(154, 130, 219, 0.18)',
+    workoutCardio: '#F29900',
+    workoutCardioSoft: 'rgba(242, 153, 0, 0.18)',
   },
 };
 

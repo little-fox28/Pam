@@ -45,6 +45,55 @@ export const en = {
       rep: 'Rep %{current} of %{total}',
     },
   },
+  workout: {
+    title: 'Workout',
+    subtitle: 'Track your daily training split and consistency.',
+    selectPrompt: 'Select today’s session',
+    types: {
+      pull: 'Pull Day',
+      pullDesc: 'Back, biceps & rear delts',
+      push: 'Push Day',
+      pushDesc: 'Chest, shoulders & triceps',
+      legs: 'Legs Day',
+      legsDesc: 'Quads, hamstrings & calves',
+      cardio: 'Cardio',
+      cardioDesc: 'Endurance & heart rate',
+    },
+    today: {
+      label: 'Today’s Workout',
+      routineTitle: 'AI Exercise Plan',
+      routineEmpty: 'Your personalized exercise list for this session will appear here.',
+    },
+    calendar: {
+      sectionTitle: 'Monthly Consistency',
+      sessionsCount: '%{count} logged',
+      accessibilityLabel: 'Workout calendar for %{month}',
+      weekdays: {
+        mon: 'M',
+        tue: 'T',
+        wed: 'W',
+        thu: 'T',
+        fri: 'F',
+        sat: 'S',
+        sun: 'S',
+      },
+    },
+    calendarScreen: {
+      back: 'Back',
+      today: 'Today',
+      prevMonth: 'Previous month',
+      nextMonth: 'Next month',
+      restDay: 'Rest Day — No workout data logged',
+      emptyExercises: 'Completed %{type} — No exercise details logged yet',
+      setsRepsFormat: '%{sets} sets × %{reps} reps',
+      repsPerSetFormat: '%{sets} sets (%{breakdown} reps)',
+      stats: {
+        exercises: 'Exercises',
+        sets: 'Total Sets',
+        duration: 'Duration',
+      },
+    },
+  },
 };
 
 export type Translations = typeof en;
