@@ -97,11 +97,14 @@ export function useIntervalTimer({
     restDuration: safeRest,
     totalReps: safeReps,
   });
-  configRef.current = {
-    workDuration: safeWork,
-    restDuration: safeRest,
-    totalReps: safeReps,
-  };
+
+  useEffect(() => {
+    configRef.current = {
+      workDuration: safeWork,
+      restDuration: safeRest,
+      totalReps: safeReps,
+    };
+  }, [safeWork, safeRest, safeReps]);
 
   // Sync displayed remainingTime if config changes while idle.
   useEffect(() => {

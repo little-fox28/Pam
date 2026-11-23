@@ -53,7 +53,6 @@ export async function initAudioCues(): Promise<void> {
 
     if (!shortBeepSound) {
       const { sound } = await Audio.Sound.createAsync(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@/assets/sounds/beep-short.wav'),
         { shouldPlay: false, volume: 1.0 }
       );
@@ -62,7 +61,6 @@ export async function initAudioCues(): Promise<void> {
 
     if (!longBeepSound) {
       const { sound } = await Audio.Sound.createAsync(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@/assets/sounds/beep-long.wav'),
         { shouldPlay: false, volume: 1.0 }
       );

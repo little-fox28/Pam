@@ -72,6 +72,7 @@ function Boot() {
       screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="timer" />
       <Tabs.Screen name="index" />
+      <Tabs.Screen name="workout" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );

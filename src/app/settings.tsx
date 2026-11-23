@@ -4,13 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Segmented } from '@/components/Segmented';
 import { LOCALES, useLocaleStore, useTranslation } from '@/i18n';
 import { haptic } from '@/services/haptics';
-import { useNetworkStore } from '@/stores/network';
 import { useUnitsStore } from '@/stores/units';
 import { THEME_MODES, useThemeModeStore } from '@/theme/mode-store';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function SettingsScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const { t } = useTranslation();
 
   const mode = useThemeModeStore((s) => s.mode);
@@ -19,7 +18,6 @@ export default function SettingsScreen() {
   const setLocale = useLocaleStore((s) => s.setLocale);
   const weightUnit = useUnitsStore((s) => s.weightUnit);
   const setWeightUnit = useUnitsStore((s) => s.setWeightUnit);
-  const isOnline = useNetworkStore((s) => s.isOnline);
 
   const label = (text: string) => (
     <Text style={[typography.caption, { color: colors.textSecondary, marginBottom: spacing.sm }]}>

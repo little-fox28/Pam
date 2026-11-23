@@ -8,6 +8,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { DumbbellAiIcon } from '@/components/DumbbellAiIcon';
 import { useTranslation } from '@/i18n';
 import { haptic } from '@/services/haptics';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -17,10 +18,10 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>
 type TabMeta = {
   labelKey: string;
   iosIcon: {
-    active: 'clock.fill' | 'house.fill' | 'gearshape.fill';
-    inactive: 'clock' | 'house' | 'gearshape';
+    active: 'clock.fill' | 'dumbbell.fill' | 'house.fill' | 'gearshape.fill';
+    inactive: 'clock' | 'dumbbell' | 'house' | 'gearshape';
   };
-  androidIcon: 'timer' | 'home' | 'settings';
+  androidIcon: 'timer' | 'exercise' | 'home' | 'settings';
 };
 
 const TAB_META: Record<string, TabMeta> = {
@@ -34,6 +35,11 @@ const TAB_META: Record<string, TabMeta> = {
     iosIcon: { active: 'house.fill', inactive: 'house' },
     androidIcon: 'home',
   },
+  workout: {
+    labelKey: 'tabs.workout',
+    iosIcon: { active: 'dumbbell.fill', inactive: 'dumbbell' },
+    androidIcon: 'exercise',
+  },
   settings: {
     labelKey: 'tabs.settings',
     iosIcon: { active: 'gearshape.fill', inactive: 'gearshape' },
@@ -41,7 +47,7 @@ const TAB_META: Record<string, TabMeta> = {
   },
 };
 
-const TAB_WIDTH = 92;
+const TAB_WIDTH = 76;
 const TAB_HEIGHT = 52;
 const TAB_GAP = 4;
 const PILL_PADDING = 4;
@@ -169,15 +175,19 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
                   opacity: pressed ? 0.75 : 1,
                 },
               ]}>
-              <SymbolView
-                name={{
-                  ios: isFocused ? meta.iosIcon.active : meta.iosIcon.inactive,
-                  android: meta.androidIcon,
-                }}
-                size={32}
-                weight={isFocused ? 'semibold' : 'regular'}
-                tintColor={tintColor}
-              />
+              {route.name === 'workout' ? (
+                <DumbbellAiIcon size={32} color={tintColor} />
+              ) : (
+                <SymbolView
+                  name={{
+                    ios: isFocused ? meta.iosIcon.active : meta.iosIcon.inactive,
+                    android: meta.androidIcon,
+                  }}
+                  size={32}
+                  weight={isFocused ? 'semibold' : 'regular'}
+                  tintColor={tintColor}
+                />
+              )}
             </Pressable>
           );
         })}

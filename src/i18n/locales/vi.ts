@@ -3,6 +3,7 @@ import type { Translations } from './en';
 export const vi: Translations = {
   tabs: {
     timer: 'Đồng hồ',
+    workout: 'Tập luyện',
     home: 'Trang chủ',
     settings: 'Cài đặt',
   },

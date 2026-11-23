@@ -1,6 +1,7 @@
 export const en = {
   tabs: {
     timer: 'Timer',
+    workout: 'Workout',
     home: 'Home',
     settings: 'Settings',
   },
