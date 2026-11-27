@@ -24,28 +24,32 @@ export type ThemeColors = {
   workoutCardioSoft: string;
 };
 
-/** Apple Human Interface Guidelines (iOS System Colors). */
-const iosColors: Record<ColorSchemeName, ThemeColors> = {
+/**
+ * Unified PAM Brand & Apple Health Activity Palette (shared across iOS & Android).
+ * - Brand Accent: Indigo Blurple (`#4F46E5` Light / `#6366F1` Dark)
+ * - Activity Splits: Exercise Neon Green, Stand Neon Cyan, Sleep Neon Violet, Move Neon Crimson
+ */
+export const colors: Record<ColorSchemeName, ThemeColors> = {
   light: {
     background: '#F2F2F7',
     surface: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
     textPrimary: '#000000',
     textSecondary: '#6C6C70',
-    border: '#C6C6C8',
-    accent: '#007AFF',
+    border: '#E5E5EA',
+    accent: '#7C3AED',
     onAccent: '#FFFFFF',
-    warning: '#FF9500',
-    destructive: '#FF3B30',
-    success: '#34C759',
-    workoutPull: '#007AFF',
-    workoutPullSoft: 'rgba(0, 122, 255, 0.12)',
-    workoutPush: '#34C759',
-    workoutPushSoft: 'rgba(52, 199, 89, 0.12)',
+    warning: '#FF6D00',
+    destructive: '#FA114F',
+    success: '#00C853',
+    workoutPull: '#00B8D4',
+    workoutPullSoft: 'rgba(0, 184, 212, 0.14)',
+    workoutPush: '#00C853',
+    workoutPushSoft: 'rgba(0, 200, 83, 0.14)',
     workoutLegs: '#5856D6',
-    workoutLegsSoft: 'rgba(88, 86, 214, 0.12)',
-    workoutCardio: '#FF9500',
-    workoutCardioSoft: 'rgba(255, 149, 0, 0.14)',
+    workoutLegsSoft: 'rgba(88, 86, 214, 0.14)',
+    workoutCardio: '#FA114F',
+    workoutCardioSoft: 'rgba(250, 17, 79, 0.14)',
   },
   dark: {
     background: '#000000',
@@ -54,72 +58,21 @@ const iosColors: Record<ColorSchemeName, ThemeColors> = {
     textPrimary: '#FFFFFF',
     textSecondary: '#8E8E93',
     border: '#38383A',
-    accent: '#0A84FF',
+    accent: '#A855F7',
     onAccent: '#FFFFFF',
     warning: '#FF9F0A',
-    destructive: '#FF453A',
-    success: '#30D158',
-    workoutPull: '#0A84FF',
-    workoutPullSoft: 'rgba(10, 132, 255, 0.18)',
-    workoutPush: '#30D158',
-    workoutPushSoft: 'rgba(48, 209, 88, 0.18)',
+    destructive: '#FA114F',
+    success: '#32D74B',
+    workoutPull: '#00D5E4',
+    workoutPullSoft: 'rgba(0, 213, 228, 0.18)',
+    workoutPush: '#32D74B',
+    workoutPushSoft: 'rgba(50, 215, 75, 0.18)',
     workoutLegs: '#5E5CE6',
     workoutLegsSoft: 'rgba(94, 92, 230, 0.18)',
-    workoutCardio: '#FF9F0A',
-    workoutCardioSoft: 'rgba(255, 159, 10, 0.18)',
+    workoutCardio: '#FA114F',
+    workoutCardioSoft: 'rgba(250, 17, 79, 0.18)',
   },
 };
-
-/** Google Material Design 3 (Material You) tonal surfaces & semantic colors. */
-const androidColors: Record<ColorSchemeName, ThemeColors> = {
-  light: {
-    background: '#F8FAF9',
-    surface: '#FFFFFF',
-    surfaceElevated: '#F0F4F2',
-    textPrimary: '#191C1B',
-    textSecondary: '#444746',
-    border: '#C4C7C5',
-    accent: '#1A73E8',
-    onAccent: '#FFFFFF',
-    warning: '#E37400',
-    destructive: '#D93025',
-    success: '#1E8E3E',
-    workoutPull: '#1A73E8',
-    workoutPullSoft: 'rgba(26, 115, 232, 0.12)',
-    workoutPush: '#1E8E3E',
-    workoutPushSoft: 'rgba(30, 142, 62, 0.12)',
-    workoutLegs: '#6750A4',
-    workoutLegsSoft: 'rgba(103, 80, 164, 0.12)',
-    workoutCardio: '#E37400',
-    workoutCardioSoft: 'rgba(227, 116, 0, 0.14)',
-  },
-  dark: {
-    background: '#131314',
-    surface: '#1E1F20',
-    surfaceElevated: '#282A2C',
-    textPrimary: '#E3E3E3',
-    textSecondary: '#C4C7C5',
-    border: '#444746',
-    accent: '#4C8DF6',
-    onAccent: '#FFFFFF',
-    warning: '#F29900',
-    destructive: '#E46962',
-    success: '#34A853',
-    workoutPull: '#4C8DF6',
-    workoutPullSoft: 'rgba(76, 141, 246, 0.18)',
-    workoutPush: '#34A853',
-    workoutPushSoft: 'rgba(52, 168, 83, 0.18)',
-    workoutLegs: '#9A82DB',
-    workoutLegsSoft: 'rgba(154, 130, 219, 0.18)',
-    workoutCardio: '#F29900',
-    workoutCardioSoft: 'rgba(242, 153, 0, 0.18)',
-  },
-};
-
-export const colors: Record<ColorSchemeName, ThemeColors> = Platform.select({
-  android: androidColors,
-  default: iosColors,
-});
 
 /** 4pt grid. */
 export const spacing = {
