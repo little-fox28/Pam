@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { CalendarScreen } from '@/screens/CalendarScreen';
+import { StreakIcon } from '@/components/WorkoutIcons';
 import { getWorkoutColors, WorkoutTypeIcon } from '@/config/workoutConfig';
 import { useTranslation } from '@/i18n';
 import { haptic } from '@/services/haptics';
@@ -59,6 +60,7 @@ export function WorkoutCalendar({ onPressCalendar, compact = false }: WorkoutCal
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
   const todayKey = getTodayDateKey(now);
 
   const monthTitle = useMemo(() => {
@@ -72,15 +74,13 @@ export function WorkoutCalendar({ onPressCalendar, compact = false }: WorkoutCal
     }
   }, [currentMonth, currentYear, locale]);
 
-  const { days, monthlyCompletedCount } = useMemo(() => {
+  const { days, currentStreak } = useMemo(() => {
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const list: DayCell[] = [];
-    let completedCount = 0;
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = formatLocalDateKey(currentYear, currentMonth, day);
       const loggedType = logs[dateKey];
-      if (loggedType) completedCount += 1;
 
       list.push({
         dayNumber: day,
@@ -90,8 +90,19 @@ export function WorkoutCalendar({ onPressCalendar, compact = false }: WorkoutCal
       });
     }
 
-    return { days: list, monthlyCompletedCount: completedCount };
-  }, [currentMonth, currentYear, logs, todayKey]);
+    // Calculate consecutive daily workout streak up to today (or yesterday if today isn't logged yet).
+    let streak = 0;
+    const cursor = new Date(currentYear, currentMonth, currentDay);
+    if (!logs[getTodayDateKey(cursor)]) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (logs[getTodayDateKey(cursor)]) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    return { days: list, currentStreak: streak };
+  }, [currentDay, currentMonth, currentYear, logs, todayKey]);
 
   const unloggedCellBg =
     scheme === 'dark' ? colors.surfaceElevated : colors.background;
@@ -109,7 +120,7 @@ export function WorkoutCalendar({ onPressCalendar, compact = false }: WorkoutCal
           gap: spacing.xs,
         },
       ]}>
-      {/* Compact Header: Current Month/Year + Logged Sessions Badge */}
+      {/* Compact Header: Current Month/Year + Streak Badge */}
       <View style={styles.headerRow}>
         <Text style={[typography.headline, styles.monthText, { color: colors.textPrimary }]}>
           {monthTitle}
@@ -118,14 +129,26 @@ export function WorkoutCalendar({ onPressCalendar, compact = false }: WorkoutCal
           style={[
             styles.countBadge,
             {
-              backgroundColor: unloggedCellBg,
+              backgroundColor:
+                currentStreak > 0 ? 'rgba(255, 149, 0, 0.14)' : unloggedCellBg,
               borderRadius: radius.pill,
               paddingHorizontal: spacing.sm,
               paddingVertical: 3,
             },
           ]}>
-          <Text style={[typography.caption, styles.countText, { color: colors.textSecondary }]}>
-            {t('workout.calendar.sessionsCount', { count: monthlyCompletedCount })}
+          <StreakIcon
+            size={15}
+            color={currentStreak > 0 ? colors.warning : colors.textSecondary}
+          />
+          <Text
+            style={[
+              typography.numeric,
+              styles.countText,
+              {
+                color: currentStreak > 0 ? colors.warning : colors.textSecondary,
+              },
+            ]}>
+            {currentStreak}
           </Text>
         </View>
       </View>
@@ -226,11 +249,15 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   countBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 3,
   },
   countText: {
-    fontWeight: '600',
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '700',
   },
   grid: {
     flexDirection: 'row',

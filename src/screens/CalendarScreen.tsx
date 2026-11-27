@@ -139,10 +139,10 @@ const DayCellItem = React.memo(function DayCellItem({
 
   const circleBg = isSelected
     ? isToday
-      ? colors.destructive
+      ? colors.accent
       : colors.textPrimary
     : isToday
-      ? colors.destructive
+      ? colors.accent
       : 'transparent';
 
   const numberColor = isSelected

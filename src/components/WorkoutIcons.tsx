@@ -121,6 +121,21 @@ export function HeartIcon({ size = 24, color }: WorkoutIconProps) {
 }
 
 /**
+ * Streak Flame Symbol (`StreakIcon`)
+ * Filled athletic streak fire symbol (Duolingo / Apple Fitness style).
+ */
+export function StreakIcon({ size = 16, color }: WorkoutIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12.6 2.2C12.9 5.4 15.8 7.5 17.5 10.2C19.1 12.7 19.5 15.8 17.8 18.4C16.4 20.5 14 21.8 11.5 21.8C7.6 21.8 4.8 18.9 4.8 15C4.8 12.1 6.4 9.5 8.5 7.7C8.3 9.4 9.1 10.9 10.4 11.6C9.8 8.4 10.6 4.8 12.6 2.2ZM11.8 14.2C10.5 15.1 9.8 16.5 10.2 17.9C10.5 19 11.6 19.6 12.7 19.4C14.1 19.1 14.9 17.7 14.5 16.2C14.2 15.1 13.1 14.6 11.8 14.2Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+/**
  * Dispatcher component mapping a `WorkoutType` to its corresponding anatomical SVG icon.
  */
 export function WorkoutTypeIcon({
