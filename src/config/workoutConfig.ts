@@ -19,6 +19,12 @@ export type WorkoutColorToken =
   | 'workoutLegs'
   | 'workoutCardio';
 
+export type WorkoutOnColorToken =
+  | 'onWorkoutPull'
+  | 'onWorkoutPush'
+  | 'onWorkoutLegs'
+  | 'onWorkoutCardio';
+
 export type WorkoutSoftColorToken =
   | 'workoutPullSoft'
   | 'workoutPushSoft'
@@ -30,6 +36,7 @@ export type WorkoutTypeMeta = {
   labelKey: string;
   descKey: string;
   colorToken: WorkoutColorToken;
+  onColorToken: WorkoutOnColorToken;
   softColorToken: WorkoutSoftColorToken;
   Icon: ComponentType<WorkoutIconProps>;
 };
@@ -44,6 +51,7 @@ export const WORKOUT_CONFIG: Record<WorkoutType, WorkoutTypeMeta> = {
     labelKey: 'workout.types.pull',
     descKey: 'workout.types.pullDesc',
     colorToken: 'workoutPull',
+    onColorToken: 'onWorkoutPull',
     softColorToken: 'workoutPullSoft',
     Icon: BackIcon,
   },
@@ -52,6 +60,7 @@ export const WORKOUT_CONFIG: Record<WorkoutType, WorkoutTypeMeta> = {
     labelKey: 'workout.types.push',
     descKey: 'workout.types.pushDesc',
     colorToken: 'workoutPush',
+    onColorToken: 'onWorkoutPush',
     softColorToken: 'workoutPushSoft',
     Icon: ChestIcon,
   },
@@ -60,6 +69,7 @@ export const WORKOUT_CONFIG: Record<WorkoutType, WorkoutTypeMeta> = {
     labelKey: 'workout.types.legs',
     descKey: 'workout.types.legsDesc',
     colorToken: 'workoutLegs',
+    onColorToken: 'onWorkoutLegs',
     softColorToken: 'workoutLegsSoft',
     Icon: LegsIcon,
   },
@@ -68,6 +78,7 @@ export const WORKOUT_CONFIG: Record<WorkoutType, WorkoutTypeMeta> = {
     labelKey: 'workout.types.cardio',
     descKey: 'workout.types.cardioDesc',
     colorToken: 'workoutCardio',
+    onColorToken: 'onWorkoutCardio',
     softColorToken: 'workoutCardioSoft',
     Icon: HeartIcon,
   },
@@ -81,6 +92,6 @@ export function getWorkoutColors(
   return {
     bg: colors[meta.colorToken],
     softBg: colors[meta.softColorToken],
-    fg: colors.onAccent,
+    fg: colors[meta.onColorToken],
   };
 }

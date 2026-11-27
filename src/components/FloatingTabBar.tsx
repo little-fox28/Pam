@@ -112,7 +112,7 @@ export function FloatingTabBar({ state, emitter, navigateToTab, insets }: TabBar
   });
 
   const activeBg =
-    scheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+    scheme === 'dark' ? 'rgba(0, 0, 0, 1)' : 'rgba(0, 0, 0, 0.05)';
 
   if (keyboardVisible) return null;
 

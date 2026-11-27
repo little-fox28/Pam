@@ -61,6 +61,7 @@ function formatSeconds(totalSeconds: number): string {
 }
 
 export default function TimerScreen() {
+  'use no memo';
   const { colors, spacing, radius, typography, scheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -72,7 +73,6 @@ export default function TimerScreen() {
     rest: String(INITIAL_VALUES.rest),
     reps: String(INITIAL_VALUES.reps),
   });
-  const [focusedField, setFocusedField] = useState<Field | null>(null);
 
   const inputRefs = useRef<Record<Field, ComponentRef<typeof TextInput> | null>>({
     time: null,
@@ -140,35 +140,38 @@ export default function TimerScreen() {
 
   // 1. Preload audio cues on mount and release on unmount.
   useEffect(() => {
-    initAudioCues().catch(() => {});
+    initAudioCues().catch(() => { });
     return () => {
-      unloadAudioCues().catch(() => {});
-      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
+      unloadAudioCues().catch(() => { });
+      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => { });
     };
   }, []);
 
   // 2. Screen Wake Lock: keep screen awake during 'working' or 'resting', release on 'idle' or 'completed'.
   useEffect(() => {
     if (currentState === 'working' || currentState === 'resting') {
-      activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => {});
+      activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => { });
     } else {
-      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
+      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => { });
     }
   }, [currentState]);
 
   // 3. Audio Cues & Haptics:
-  //    - During REST: play 3 short beeps at 3s, 2s, and 1s remaining.
-  //    - When REST hits 0s (transitioning to WORK): play 1 long beep.
+  //    - During WORK and REST: play 3 short beeps at 3s, 2s, and 1s remaining ("sắp hết giờ").
+  //    - When WORK or REST hits 0s (phase transition or completion): play 1 long beep.
   const lastShortBeepKeyRef = useRef<string | null>(null);
-  const prevStateRef = useRef<TimerState>(currentState);
+  const prevPhaseRef = useRef<{ state: TimerState; rep: number }>({
+    state: currentState,
+    rep: currentRep,
+  });
 
   useEffect(() => {
     if (
-      currentState === 'resting' &&
+      (currentState === 'working' || currentState === 'resting') &&
       !isPaused &&
       (remainingTime === 3 || remainingTime === 2 || remainingTime === 1)
     ) {
-      const beepKey = `${currentRep}-${remainingTime}`;
+      const beepKey = `${currentState}-${currentRep}-${remainingTime}`;
       if (lastShortBeepKeyRef.current !== beepKey) {
         lastShortBeepKeyRef.current = beepKey;
         playShortBeep();
@@ -178,32 +181,39 @@ export default function TimerScreen() {
   }, [currentState, remainingTime, currentRep, isPaused]);
 
   useEffect(() => {
-    const prevState = prevStateRef.current;
-    if (prevState !== currentState) {
-      if (prevState === 'resting' && currentState === 'working') {
+    const { state: prevState, rep: prevRep } = prevPhaseRef.current;
+
+    if (prevState !== currentState || prevRep !== currentRep) {
+      if (prevState === 'working' && currentState === 'resting') {
+        playLongBeep();
+        haptic.warning();
+      } else if (prevState === 'resting' && currentState === 'working') {
         playLongBeep();
         haptic.medium();
-      } else if (currentState === 'resting') {
-        haptic.warning();
-      } else if (currentState === 'completed') {
+      } else if (
+        prevState === 'working' &&
+        currentState === 'working' &&
+        prevRep !== currentRep
+      ) {
+        playLongBeep();
+        haptic.medium();
+      } else if (
+        (prevState === 'working' || prevState === 'resting') &&
+        currentState === 'completed'
+      ) {
         playLongBeep();
         haptic.success();
       }
-      prevStateRef.current = currentState;
+
+      prevPhaseRef.current = { state: currentState, rep: currentRep };
     }
-  }, [currentState]);
+  }, [currentState, currentRep]);
 
   const activePhaseDuration =
     currentState === 'resting' ? Math.max(1, values.rest) : Math.max(1, values.time);
 
   // Primary palette: Green (success) and Orange (warning)
   const phaseAccentColor = currentState === 'resting' ? colors.warning : colors.success;
-
-  const fieldColor: Record<Field, string> = {
-    time: colors.success,
-    rest: colors.warning,
-    reps: colors.success,
-  };
 
   const handleChangeText = (field: Field, raw: string) => {
     const digitsOnly = raw.replace(/[^0-9]/g, '');
@@ -218,7 +228,6 @@ export default function TimerScreen() {
   };
 
   const handleBlur = (field: Field) => {
-    setFocusedField((current) => (current === field ? null : current));
     const raw = drafts[field];
     const { min, max } = FIELDS[field];
     const parsed = raw === '' ? values[field] : parseInt(raw, 10);
@@ -254,6 +263,8 @@ export default function TimerScreen() {
       ? t('timer.action.resume')
       : t('timer.action.pause')
     : t('timer.action.start');
+
+  const isResetDisabled = currentState === 'idle';
 
   // Green for START / RESUME, Orange for PAUSE
   const primaryButtonColor =
@@ -315,7 +326,7 @@ export default function TimerScreen() {
               },
               bottomAnimatedStyle,
             ]}>
-            {/* Setup Controls (Green Active Outline on Focus) */}
+            {/* Setup Controls */}
             <View
               style={[
                 styles.setupRow,
@@ -324,66 +335,60 @@ export default function TimerScreen() {
                   opacity: isRunningOrPaused ? 0.55 : 1,
                 },
               ]}>
-              {(Object.keys(FIELDS) as Field[]).map((field) => {
-                const isFocused = focusedField === field;
-                const activeColor = fieldColor[field];
-
-                return (
-                  <Pressable
-                    key={field}
-                    accessibilityRole="button"
-                    disabled={isRunningOrPaused}
-                    onPress={() => {
-                      haptic.light();
-                      inputRefs.current[field]?.focus();
-                    }}
+              {(Object.keys(FIELDS) as Field[]).map((field) => (
+                <Pressable
+                  key={field}
+                  accessibilityRole="button"
+                  disabled={isRunningOrPaused}
+                  onPress={() => {
+                    haptic.light();
+                    inputRefs.current[field]?.focus();
+                  }}
+                  style={[
+                    styles.setupCard,
+                    {
+                      backgroundColor: colors.surface,
+                      borderRadius: radius.lg,
+                      paddingVertical: spacing.sm,
+                      paddingHorizontal: spacing.sm,
+                      borderColor: colors.border,
+                      borderWidth: StyleSheet.hairlineWidth,
+                    },
+                  ]}>
+                  <Text
+                    numberOfLines={1}
                     style={[
-                      styles.setupCard,
-                      {
-                        backgroundColor: colors.surface,
-                        borderRadius: radius.lg,
-                        paddingVertical: spacing.sm,
-                        paddingHorizontal: spacing.sm,
-                        borderColor: isFocused ? colors.success : colors.border,
-                        borderWidth: isFocused ? 2 : StyleSheet.hairlineWidth,
-                      },
+                      typography.caption,
+                      styles.cardLabel,
+                      { color: colors.accent },
                     ]}>
-                    <Text
-                      numberOfLines={1}
-                      style={[
-                        typography.caption,
-                        styles.cardLabel,
-                        { color: activeColor },
-                      ]}>
-                      {t(`timer.setup.${field}`).toUpperCase()}
-                    </Text>
+                    {t(`timer.setup.${field}`).toUpperCase()}
+                  </Text>
 
-                    <View style={styles.cardValueWrapper}>
-                      <TextInput
-                        ref={(el) => {
-                          inputRefs.current[field] = el;
-                        }}
-                        editable={!isRunningOrPaused}
-                        value={drafts[field]}
-                        onChangeText={(text) => handleChangeText(field, text)}
-                        onFocus={() => setFocusedField(field)}
-                        onBlur={() => handleBlur(field)}
-                        keyboardType="number-pad"
-                        keyboardAppearance={scheme}
-                        returnKeyType="done"
-                        maxLength={4}
-                        selectTextOnFocus
-                        onSubmitEditing={Keyboard.dismiss}
-                        style={[
-                          typography.title,
-                          styles.cardInput,
-                          { color: isFocused ? activeColor : colors.textPrimary },
-                        ]}
-                      />
-                    </View>
-                  </Pressable>
-                );
-              })}
+                  <View style={styles.cardValueWrapper}>
+                    <TextInput
+                      ref={(el) => {
+                        inputRefs.current[field] = el;
+                      }}
+                      editable={!isRunningOrPaused}
+                      value={drafts[field]}
+                      onChangeText={(text) => handleChangeText(field, text)}
+                      onBlur={() => handleBlur(field)}
+                      keyboardType="number-pad"
+                      keyboardAppearance={scheme}
+                      returnKeyType="done"
+                      maxLength={4}
+                      selectTextOnFocus
+                      onSubmitEditing={Keyboard.dismiss}
+                      style={[
+                        typography.title,
+                        styles.cardInput,
+                        { color: colors.textPrimary },
+                      ]}
+                    />
+                  </View>
+                </Pressable>
+              ))}
             </View>
 
             {/* Bottom Action Bar (START / PAUSE / RESET) */}
@@ -407,18 +412,27 @@ export default function TimerScreen() {
 
               <Pressable
                 accessibilityRole="button"
+                accessibilityState={{ disabled: isResetDisabled }}
+                disabled={isResetDisabled}
                 onPress={handleReset}
                 style={({ pressed }) => [
                   styles.actionButton,
                   styles.resetButton,
                   {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.warning,
+                    backgroundColor: isResetDisabled
+                      ? colors.disabledBg
+                      : colors.destructiveSoft,
                     borderRadius: radius.pill,
-                    opacity: pressed ? 0.75 : 1,
+                    opacity: !isResetDisabled && pressed ? 0.75 : 1,
                   },
                 ]}>
-                <Text style={[typography.headline, { color: colors.warning }]}>
+                <Text
+                  style={[
+                    typography.headline,
+                    {
+                      color: isResetDisabled ? colors.onDisabled : colors.destructive,
+                    },
+                  ]}>
                   {t('timer.action.stop')}
                 </Text>
               </Pressable>
@@ -498,6 +512,5 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     flex: 1,
-    borderWidth: 1,
   },
 });

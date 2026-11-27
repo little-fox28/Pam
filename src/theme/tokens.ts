@@ -10,67 +10,91 @@ export type ThemeColors = {
   textSecondary: string;
   border: string;
   accent: string;
+  accentSoft: string;
   onAccent: string;
   warning: string;
   destructive: string;
+  destructiveSoft: string;
+  disabledBg: string;
+  onDisabled: string;
   success: string;
   workoutPull: string;
+  onWorkoutPull: string;
   workoutPullSoft: string;
   workoutPush: string;
+  onWorkoutPush: string;
   workoutPushSoft: string;
   workoutLegs: string;
+  onWorkoutLegs: string;
   workoutLegsSoft: string;
   workoutCardio: string;
+  onWorkoutCardio: string;
   workoutCardioSoft: string;
 };
 
 /**
- * Unified PAM Brand & Apple Health Activity Palette (shared across iOS & Android).
- * - Brand Accent: Indigo Blurple (`#4F46E5` Light / `#6366F1` Dark)
- * - Activity Splits: Exercise Neon Green, Stand Neon Cyan, Sleep Neon Violet, Move Neon Crimson
+ * Unified PAM Volt-Neon Athletic Palette (harmonized around `#9EEB00` / `#A6FF00`).
+ * - Surfaces carry a subtle cool-graphite athletic tint that makes Volt Lime pop.
+ * - Status & Workout splits share the same high-energy neon saturation curve.
  */
 export const colors: Record<ColorSchemeName, ThemeColors> = {
   light: {
-    background: '#F2F2F7',
+    background: '#F3F5F0',
     surface: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
-    textPrimary: '#000000',
-    textSecondary: '#6C6C70',
-    border: '#E5E5EA',
-    accent: '#7C3AED',
-    onAccent: '#FFFFFF',
-    warning: '#FF6D00',
-    destructive: '#FA114F',
-    success: '#00C853',
-    workoutPull: '#00B8D4',
-    workoutPullSoft: 'rgba(0, 184, 212, 0.14)',
-    workoutPush: '#00C853',
-    workoutPushSoft: 'rgba(0, 200, 83, 0.14)',
-    workoutLegs: '#5856D6',
-    workoutLegsSoft: 'rgba(88, 86, 214, 0.14)',
-    workoutCardio: '#FA114F',
-    workoutCardioSoft: 'rgba(250, 17, 79, 0.14)',
+    textPrimary: '#0F140A',
+    textSecondary: '#5F6659',
+    border: '#E1E6DC',
+    accent: '#9EEB00',
+    accentSoft: 'rgba(158, 235, 0, 0.18)',
+    onAccent: '#0A0F00',
+    warning: '#FF9500',
+    destructive: '#FF2E54',
+    destructiveSoft: 'rgba(255, 46, 84, 0.14)',
+    disabledBg: '#A3A99E',
+    onDisabled: '#FFFFFF',
+    success: '#84CC16',
+    workoutPush: '#9EEB00',
+    onWorkoutPush: '#0A0F00',
+    workoutPushSoft: 'rgba(158, 235, 0, 0.18)',
+    workoutPull: '#00D4E5',
+    onWorkoutPull: '#001F24',
+    workoutPullSoft: 'rgba(0, 212, 229, 0.15)',
+    workoutLegs: '#8B5CF6',
+    onWorkoutLegs: '#FFFFFF',
+    workoutLegsSoft: 'rgba(139, 92, 246, 0.14)',
+    workoutCardio: '#FF2E54',
+    onWorkoutCardio: '#FFFFFF',
+    workoutCardioSoft: 'rgba(255, 46, 84, 0.14)',
   },
   dark: {
     background: '#000000',
-    surface: '#1C1C1E',
-    surfaceElevated: '#2C2C2E',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#8E8E93',
-    border: '#38383A',
-    accent: '#A855F7',
-    onAccent: '#FFFFFF',
-    warning: '#FF9F0A',
-    destructive: '#FA114F',
-    success: '#32D74B',
-    workoutPull: '#00D5E4',
-    workoutPullSoft: 'rgba(0, 213, 228, 0.18)',
-    workoutPush: '#32D74B',
-    workoutPushSoft: 'rgba(50, 215, 75, 0.18)',
-    workoutLegs: '#5E5CE6',
-    workoutLegsSoft: 'rgba(94, 92, 230, 0.18)',
-    workoutCardio: '#FA114F',
-    workoutCardioSoft: 'rgba(250, 17, 79, 0.18)',
+    surface: '#161815',
+    surfaceElevated: '#232621',
+    textPrimary: '#F8FAF5',
+    textSecondary: '#90968B',
+    border: '#32362F',
+    accent: '#A6FF00',
+    accentSoft: 'rgba(166, 255, 0, 0.16)',
+    onAccent: '#0A0F00',
+    warning: '#FFB800',
+    destructive: '#FF3358',
+    destructiveSoft: 'rgba(255, 51, 88, 0.18)',
+    disabledBg: '#3A3E37',
+    onDisabled: '#FFFFFF',
+    success: '#A6FF00',
+    workoutPush: '#A6FF00',
+    onWorkoutPush: '#0A0F00',
+    workoutPushSoft: 'rgba(166, 255, 0, 0.16)',
+    workoutPull: '#00F0FF',
+    onWorkoutPull: '#002226',
+    workoutPullSoft: 'rgba(0, 240, 255, 0.16)',
+    workoutLegs: '#A855F7',
+    onWorkoutLegs: '#FFFFFF',
+    workoutLegsSoft: 'rgba(168, 85, 247, 0.18)',
+    workoutCardio: '#FF3358',
+    onWorkoutCardio: '#FFFFFF',
+    workoutCardioSoft: 'rgba(255, 51, 88, 0.18)',
   },
 };
 

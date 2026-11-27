@@ -72,7 +72,7 @@ function Fallback({
         accessibilityRole="button"
         onPress={onRetry}
         style={[styles.button, { backgroundColor: colors.accent, borderRadius: radius.md }]}>
-        <Text style={[typography.headline, { color: '#FFFFFF' }]}>{i18n.t('error.retry')}</Text>
+        <Text style={[typography.headline, { color: colors.onAccent }]}>{i18n.t('error.retry')}</Text>
       </Pressable>
       <Pressable accessibilityRole="button" onPress={onReset} style={styles.secondary}>
         <Text style={[typography.body, { color: colors.destructive }]}>{i18n.t('error.reset')}</Text>

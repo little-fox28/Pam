@@ -41,7 +41,11 @@ export function Segmented<T extends string>({
             <Text
               style={[
                 typography.body,
-                { color: selected ? '#FFFFFF' : colors.textPrimary, textAlign: 'center' },
+                {
+                  color: selected ? colors.onAccent : colors.textPrimary,
+                  fontWeight: selected ? '600' : '400',
+                  textAlign: 'center',
+                },
               ]}>
               {option.label}
             </Text>
